@@ -1,0 +1,31 @@
+#!/bin/sh
+#KOPIJA .xinitrc datoteke
+sxhkd & #datoteka z dodatno ustvarjenimi bližnjicami
+xinput --set-prop 'MSFT0001:00 06CB:CE2D Touchpad' 'libinput Tapping Enabled' 1 #omogoči klikanje s tapom (torej ne nujno klikom) na ploščico
+xinput --set-prop 'MSFT0001:00 06CB:CE2D Touchpad' 'libinput Natural Scrolling Enabled' 1 #drsenje v pravo smer s ploščico
+while true; do
+    TIME=$(date +%a,%d-%m-%Y,%H:%M)
+    #BATERIJA=$(upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep -e percentage -e 'time to empty' | sed 's/[[:blank:]]//g'  | tr -d '\n') #time to empty:_hours percentage:_%
+    BATERIJA=$(upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep -e percentage -e 'time to empty')
+        PERCENTAGE=$(echo "$BATERIJA" | grep 'percentage' | awk '{print $2}') #_%   izvleče vrstico s percentage in vzame drugi stolpec z vrednostjo        
+        #B1="${BATERIJA#*:}" #_hours percentage:_% ALI _% 
+        #if echo "$B1" | grep -q 'hours'; then
+            #BT="${B1%percentage*}" #_hours
+                #BT="${BT/hours/ure}" #_ure
+            #BO="${B1#*hours}" #percentage:_%
+                #BO="${BO/percentage:/🔋}" #🔋_%
+        if echo "$BATERIJA" | grep -q 'time to empty'; then
+            TIME_TO_EMPTY=$(echo "$BATERIJA" | grep 'time to empty' | awk '{print $4 " ure"}')
+            STATUS="🔋$PERCENTAGE ($TIME_TO_EMPTY)"
+        else
+            STATUS="🔋$PERCENTAGE"
+        fi        
+    #VREME=$(curl wttr.in/Medvode 2>/dev/null | sed 's/.* //g')
+    #xsetroot -name "$BO ($BT) | $TIME"
+    xsetroot -name "$STATUS | $TIME"
+
+    #xsetroot -name "`date +%H:%M`" #nastavi napis v pasici, uporabi programček "date" in prikaže v izbrani obliki - ure-minute
+    #xsetroot -name "`upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep -e 'time to empty' -e percentage`" #pokaže napolnjenost baterije, če ni priklopljena na kabel še približno koliko časa bo še delovala
+    sleep 20 #uro osvežuje izbrano število sekund
+done &
+exec dwm #zažene DWM
