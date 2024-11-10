@@ -1,0 +1,17 @@
+Print
+    import png:- | xclip -selection clipboard -t image/png -i
+    # napravi posnetek zaslona in ga spravi v odložišče
+
+super + shift + e 
+#poročilo o stanju baterije
+    xsetroot -name "`upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep -e 'time to empty' -e percentage`" #naslov naprave (baterije) pridobiš z ukazom `uppower -e`
+
+super + shift + d
+# pokaže datum in čas
+    xsetroot -name "`date +'%d.%m.%Y, %H:%M'`"; sleep 2; xsetroot -name "`date +%H:%M`"
+
+super + shift + a
+    st -e pulsemixer 
+
+super + e
+    st -e lf
