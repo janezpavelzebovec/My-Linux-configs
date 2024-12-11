@@ -1,0 +1,46 @@
+#!/bin/bash
+
+    TIME=$(date +%a,%Y-%m-%d,%H:%M)
+    
+    BATERY=$(/usr/bin/upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep -e percentage -e 'time to empty')
+        PERCENTAGE=$(echo "$BATERY" | grep 'percentage' | awk '{print $2}')                                             # _%   gets line with percentage and takes second column with value
+        if echo "$BATERIJA" | grep -q 'time to empty'; then                                                             # checks if is in output of batery condition also value "time to empty"
+            TIME_TO_EMPTY=$(echo "$BATERY" | grep 'time to empty' | awk '{print $4 " ure"}')
+            STATUS="$PERCENTAGE ($TIME_TO_EMPTY)"
+        else
+            STATUS="$PERCENTAGE"
+        fi
+
+    CONNECTION=$(nmcli -t -f TYPE,STATE,CONNECTION dev status | grep ':connected' | head -n 1)
+        if [ -z "$CONNECTION" ]; then
+            ENTHERNET ="NE"                                                                                             # no enthernet
+        else
+            DEVICE_TYPE=$(echo "$CONNECTION" | cut -d':' -f1)                                                           # gets type (WiFi, enthernet)
+            case "$DEVICE_TYPE" in
+                ethernet)
+                    DEVICE_NAME=$(echo "$CONNECTION" | cut -d':' -f3)                                                   # gets type (etc. enp1s0)
+                    if [ -f "/sys/class/net/$DEVICE_NAME/speed" ]; then
+                        SPEED=$(cat "/sys/class/net/$DEVICE_NAME/speed")                                                # reads speed
+                        ENTHERNET="CEC ${SPEED}Mb/s"                                                                    # adds speed
+                    else
+                        ENTHERNET="CEC"                                                                                 # if no speed is avaliable
+                    fi
+                    ;;
+                wifi)
+                    SIGNAL=$(nmcli -t -f SIGNAL dev wifi list | head -n 1)
+                    ENTHERNET="WiFi ${SIGNAL}%"                                                                         # wireless enthernet connection
+                    ;;
+                *)
+                    ENTHERNET="OEC"                                                                                     # other enthernet connection
+                    ;;
+            esac
+        fi
+
+    PLAYING=$(mpc status | grep -E '^\[playing\]')
+    if [ -n "$PLAYING" ]; then                                                                                          # if playing, gets title
+        SONG="$(ncmpcpp --current-song "%t" -q) |" #%t title, %a artist
+    else                                                                                                                # if not playing, clears
+        SONG=""
+    fi
+
+    xsetroot -name "$SONG $ENTHERNET | $STATUS | $TIME"
